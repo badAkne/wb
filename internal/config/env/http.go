@@ -1,0 +1,42 @@
+package env
+
+import (
+	"errors"
+	"net"
+	"os"
+	config "wb/internal/config"
+)
+
+var _ config.HTTPConfig = (*httpConfig)(nil)
+
+const (
+	httpHostEnvName = "HTTP_HOST"
+	httpPortEnvName = "HTTP_PORT"
+)
+
+type httpConfig struct {
+	host string
+	port string
+}
+
+func NewHTTPConfig() (*httpConfig, error) {
+	host := os.Getenv(httpHostEnvName)
+	if len(host) == 0 {
+
+		return nil, errors.New("http host name not found")
+	}
+
+	port := os.Getenv(httpPortEnvName)
+	if len(port) == 0 {
+		return nil, errors.New("http port not found")
+	}
+
+	return &httpConfig{
+		host: host,
+		port: port,
+	}, nil
+}
+
+func (cfg *httpConfig) Adress() string {
+	return net.JoinHostPort(cfg.host, cfg.port)
+}

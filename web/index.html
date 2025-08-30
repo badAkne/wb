@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Order Viewer</title>
+		<style>
+			body {
+				font-family: Arial, sans-serif;
+				margin: 20px;
+			}
+			input {
+				padding: 5px;
+				margin-right: 10px;
+			}
+			button {
+				padding: 5px 10px;
+			}
+			pre {
+				background: #f4f4f4;
+				padding: 10px;
+				border-radius: 5px;
+			}
+		</style>
+	</head>
+	<body>
+		<h1>View Order</h1>
+		<input type="text" id="orderId" placeholder="Enter Order UID" />
+		<button onclick="fetchOrder()">Get Order</button>
+		<pre id="result"></pre>
+
+		<script>
+			function fetchOrder() {
+				const uid = document.getElementById('orderId').value
+				fetch(`/order/${uid}`)
+					.then(response => {
+						if (!response.ok) throw new Error('Order not found')
+						return response.json()
+					})
+					.then(data => {
+						document.getElementById('result').innerText = JSON.stringify(
+							data,
+							null,
+							2
+						)
+					})
+					.catch(error => {
+						document.getElementById('result').innerText = 'Error: ' + error
+					})
+			}
+		</script>
+	</body>
+</html>
