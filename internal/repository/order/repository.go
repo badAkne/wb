@@ -9,19 +9,22 @@ import (
 	"wb/internal/repository"
 
 	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/patrickmn/go-cache"
 )
 
 var _ repository.OrderRepository = (*OrderRepository)(nil)
 
 type OrderRepository struct {
-	cache map[string]model.Order
+	cache *cache.Cache
 	db    *pgxpool.Pool
 	mu    sync.RWMutex
 }
 
 func NewOrderRepository(db *pgxpool.Pool) *OrderRepository {
+	c := cache.New(5*time.Minute, 10*time.Minute)
+
 	return &OrderRepository{
-		cache: make(map[string]model.Order),
+		cache: c,
 		db:    db,
 	}
 }
@@ -47,7 +50,7 @@ func (r *OrderRepository) LoadCacheFromDB(ctx context.Context) error {
 		err := rows.Scan(
 			&o.OrderUID, &o.TrackNumber, &o.Entry, &o.Locale, &o.InternalSignature, &o.CustomerId, &o.DeliveryService, &o.Sharkey, &o.SmId, &dateCreated, &o.OofShard,
 			&o.Delivery.Name, &o.Delivery.Phone, &o.Delivery.Zip, &o.Delivery.City, &o.Delivery.Address, &o.Delivery.Region, &o.Delivery.Email,
-			&o.Payment.Transaction, &o.Payment.RequestId, &o.Payment.Currency, &o.Payment.Provider, &o.Payment.Amount, &o.Payment.Payment_dt, &o.Payment.Bank, &o.Payment.DeliveryCost, &o.Payment.GoodsTotal, &o.Payment.CustomFee,
+			&o.Payment.Transaction, &o.Payment.RequestId, &o.Payment.Currency, &o.Payment.Provider, &o.Payment.Amount, &o.Payment.Paymentdt, &o.Payment.Bank, &o.Payment.DeliveryCost, &o.Payment.GoodsTotal, &o.Payment.CustomFee,
 		)
 		if err != nil {
 			return fmt.Errorf("%s:%v", op, err)
@@ -68,9 +71,7 @@ func (r *OrderRepository) LoadCacheFromDB(ctx context.Context) error {
 		}
 		itemRows.Close()
 
-		r.mu.Lock()
-		r.cache[o.OrderUID] = o
-		r.mu.Unlock()
+		r.cache.Set(o.OrderUID, o, cache.DefaultExpiration)
 	}
 
 	return nil
@@ -112,7 +113,7 @@ func (r *OrderRepository) SaveOrder(ctx context.Context, order model.Order) erro
 	_, err = tx.Exec(ctx, `
 		INSERT INTO payments (order_uid, transaction, request_id, currency, provider, amount, payment_dt, bank, delivery_cost, goods_total, custom_fee)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
-		order.OrderUID, order.Payment.Transaction, order.Payment.RequestId, order.Payment.Currency, order.Payment.Provider, order.Payment.Amount, order.Payment.Payment_dt, order.Payment.Bank, order.Payment.DeliveryCost, order.Payment.GoodsTotal, order.Payment.CustomFee,
+		order.OrderUID, order.Payment.Transaction, order.Payment.RequestId, order.Payment.Currency, order.Payment.Provider, order.Payment.Amount, order.Payment.Paymentdt, order.Payment.Bank, order.Payment.DeliveryCost, order.Payment.GoodsTotal, order.Payment.CustomFee,
 	)
 	if err != nil {
 		return fmt.Errorf("%s:%v", op, err)
@@ -133,20 +134,17 @@ func (r *OrderRepository) SaveOrder(ctx context.Context, order model.Order) erro
 		return fmt.Errorf("%s:%v", op, err)
 	}
 
-	r.mu.Lock()
-	r.cache[order.OrderUID] = order
-	r.mu.Unlock()
+	r.cache.Set(order.OrderUID, order, cache.DefaultExpiration)
+
 	return nil
 }
 
 func (r *OrderRepository) GetOrderByID(ctx context.Context, id string) (model.Order, bool, error) {
 	op := "internal.repository.order.GetOrderbyID"
 
-	r.mu.RLock()
-	order, ok := r.cache[id]
-	r.mu.RUnlock()
+	order, ok := r.cache.Get(id)
 	if ok {
-		return order, true, nil
+		return order.(model.Order), true, nil
 	}
 
 	row := r.db.QueryRow(ctx, `
@@ -164,7 +162,7 @@ func (r *OrderRepository) GetOrderByID(ctx context.Context, id string) (model.Or
 	err := row.Scan(
 		&o.TrackNumber, &o.Entry, &o.Locale, &o.InternalSignature, &o.CustomerId, &o.DeliveryService, &o.Sharkey, &o.SmId, &dateCreated, &o.OofShard,
 		&o.Delivery.Name, &o.Delivery.Phone, &o.Delivery.Zip, &o.Delivery.City, &o.Delivery.Address, &o.Delivery.Region, &o.Delivery.Email,
-		&o.Payment.Transaction, &o.Payment.RequestId, &o.Payment.Currency, &o.Payment.Provider, &o.Payment.Amount, &o.Payment.Payment_dt, &o.Payment.Bank, &o.Payment.DeliveryCost, &o.Payment.GoodsTotal, &o.Payment.CustomFee,
+		&o.Payment.Transaction, &o.Payment.RequestId, &o.Payment.Currency, &o.Payment.Provider, &o.Payment.Amount, &o.Payment.Paymentdt, &o.Payment.Bank, &o.Payment.DeliveryCost, &o.Payment.GoodsTotal, &o.Payment.CustomFee,
 	)
 	if err != nil {
 		return model.Order{}, false, fmt.Errorf("%s:%v", op, err)
@@ -186,8 +184,7 @@ func (r *OrderRepository) GetOrderByID(ctx context.Context, id string) (model.Or
 	}
 	itemRows.Close()
 
-	r.mu.Lock()
-	r.cache[id] = o
-	r.mu.Unlock()
+	r.cache.Set(id, o, cache.DefaultExpiration)
+
 	return o, true, nil
 }

@@ -8,6 +8,7 @@ import (
 
 	"wb/internal/model"
 
+	"github.com/brianvoe/gofakeit/v7"
 	"github.com/segmentio/kafka-go"
 )
 
@@ -19,52 +20,52 @@ func main() {
 	}
 
 	order := model.Order{
-		OrderUID:    "b563feb7b2b84b6test",
-		TrackNumber: "WBILMTESTTRACK",
-		Entry:       "WBIL",
+		OrderUID:    gofakeit.UUID(),
+		TrackNumber: gofakeit.Address().Unit,
+		Entry:       gofakeit.BeerName(),
 		Delivery: model.Delivery{
-			Name:    "Test Testov",
-			Phone:   "+9720000000",
-			Zip:     "2639809",
-			City:    "Kiryat Mozkin",
-			Address: "Ploshad Mira 15",
-			Region:  "Kraiot",
-			Email:   "test@gmail.com",
+			Name:    gofakeit.Name(),
+			Phone:   gofakeit.Phone(),
+			Zip:     gofakeit.Zip(),
+			City:    gofakeit.Address().City,
+			Address: gofakeit.Address().Address,
+			Region:  gofakeit.Address().State,
+			Email:   gofakeit.Email(),
 		},
 		Payment: model.Payment{
-			Transaction:  "b563feb7b2b84b6test",
-			Currency:     "USD",
-			Provider:     "wbpay",
-			Amount:       1817,
-			Payment_dt:   1637907727,
-			Bank:         "alpha",
-			DeliveryCost: 1500,
-			GoodsTotal:   317,
-			CustomFee:    0,
+			Transaction:  gofakeit.UUID(),
+			Currency:     gofakeit.CurrencyShort(),
+			Provider:     gofakeit.BankType(),
+			Amount:       int64(gofakeit.Number(1000, 5000)),
+			Paymentdt:    gofakeit.Int64(),
+			Bank:         gofakeit.BankName(),
+			DeliveryCost: int64(gofakeit.Number(200, 1000)),
+			GoodsTotal:   int64(gofakeit.Number(0, 500)),
+			CustomFee:    int64(gofakeit.Number(100, 500)),
 		},
 		Items: []model.Item{
 			{
-				ChrtId:      9934930,
-				TrackNumber: "WBILMTESTTRACK",
-				Price:       453,
-				Rid:         "ab4219087a764ae0btest",
-				Name:        "Mascaras",
-				Sale:        30,
-				Size:        "0",
-				TotalPrice:  317,
-				NmId:        2389212,
-				Brand:       "Vivienne Sabo",
-				Status:      202,
+				ChrtId:      gofakeit.Int64(),
+				TrackNumber: gofakeit.DigitN(10000),
+				Price:       int64(gofakeit.Product().Price),
+				Rid:         gofakeit.DigitN(100),
+				Name:        gofakeit.ProductName(),
+				Sale:        int64(gofakeit.Number(100, 10000)),
+				Size:        gofakeit.RandomString([]string{"xs", "s", "m", "l", "xl"}),
+				TotalPrice:  int64(gofakeit.Number(1, 1000)),
+				NmId:        int64(gofakeit.Number(1, 100000)),
+				Brand:       gofakeit.Company(),
+				Status:      int64(gofakeit.HTTPStatusCode()),
 			},
 		},
-		Locale:            "en",
+		Locale:            gofakeit.CountryAbr(),
 		InternalSignature: "",
-		CustomerId:        "test",
-		DeliveryService:   "meest",
-		Sharkey:           "9",
-		SmId:              99,
+		CustomerId:        gofakeit.DigitN(1000000),
+		DeliveryService:   gofakeit.Company(),
+		Sharkey:           gofakeit.DigitN(100),
+		SmId:              int64(gofakeit.Number(1, 100)),
 		DateCreated:       time.Now(),
-		OofShard:          "1",
+		OofShard:          gofakeit.DigitN(10),
 	}
 
 	data, _ := json.Marshal(order)

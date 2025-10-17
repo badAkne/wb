@@ -55,4 +55,4 @@ create table items(
 
 -- +goose Down
 
-drop table payments,items,orders;
+drop table payments,items,orders,deliveries;

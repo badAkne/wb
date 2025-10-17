@@ -52,7 +52,10 @@ func (c *Consumer) Start(ctx context.Context) {
 			continue
 		}
 
-		c.reader.CommitMessages(ctx, msg)
+		if err := c.reader.CommitMessages(ctx, msg); err != nil {
+			log.Printf("Error while commiting a message: %v", err)
+		}
+
 		log.Printf("Processed order: %s", order.OrderUID)
 	}
 }

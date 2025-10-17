@@ -37,7 +37,7 @@ type Payment struct {
 	Currency     string `json:"currency"`
 	Provider     string `json:"provider"`
 	Amount       int64  `json:"amount"`
-	Payment_dt   int64  `json:"payment_dt"`
+	Paymentdt    int64  `json:"payment_dt"`
 	Bank         string `json:"bank"`
 	DeliveryCost int64  `json:"delivery_cost"`
 	GoodsTotal   int64  `json:"goods_total"`

@@ -32,5 +32,8 @@ func (h *OrderHandler) GetOrder(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(order)
+	if err = json.NewEncoder(w).Encode(order); err != nil {
+		http.Error(w, "failed to encode a json", 500)
+		return
+	}
 }
