@@ -24,3 +24,6 @@ packages:
   wb/internal/handlers:
     interfaces:
       OrderHandler:
+  wb/internal/kafka:
+    interfaces:
+      KafkaConsumer:

@@ -48,7 +48,7 @@ func (r *OrderRepository) LoadCacheFromDB(ctx context.Context) error {
 		var o model.Order
 		var dateCreated time.Time
 		err := rows.Scan(
-			&o.OrderUID, &o.TrackNumber, &o.Entry, &o.Locale, &o.InternalSignature, &o.CustomerId, &o.DeliveryService, &o.Sharkey, &o.SmId, &dateCreated, &o.OofShard,
+			&o.OrderUID, &o.TrackNumber, &o.Entry, &o.Locale, &o.InternalSignature, &o.CustomerId, &o.DeliveryService, &o.ShardKey, &o.SmId, &dateCreated, &o.OofShard,
 			&o.Delivery.Name, &o.Delivery.Phone, &o.Delivery.Zip, &o.Delivery.City, &o.Delivery.Address, &o.Delivery.Region, &o.Delivery.Email,
 			&o.Payment.Transaction, &o.Payment.RequestId, &o.Payment.Currency, &o.Payment.Provider, &o.Payment.Amount, &o.Payment.Paymentdt, &o.Payment.Bank, &o.Payment.DeliveryCost, &o.Payment.GoodsTotal, &o.Payment.CustomFee,
 		)
@@ -95,7 +95,7 @@ func (r *OrderRepository) SaveOrder(ctx context.Context, order model.Order) erro
 		INSERT INTO orders (order_uid, track_number, entry, locale, internal_signature, customer_id, delivery_service, shardkey, sm_id, date_created, oof_shard)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
 		ON CONFLICT (order_uid) DO NOTHING`,
-		order.OrderUID, order.TrackNumber, order.Entry, order.Locale, order.InternalSignature, order.CustomerId, order.DeliveryService, order.Sharkey, order.SmId, order.DateCreated, order.OofShard,
+		order.OrderUID, order.TrackNumber, order.Entry, order.Locale, order.InternalSignature, order.CustomerId, order.DeliveryService, order.ShardKey, order.SmId, order.DateCreated, order.OofShard,
 	)
 	if err != nil {
 		return fmt.Errorf("%s:%v", op, err)
@@ -160,7 +160,7 @@ func (r *OrderRepository) GetOrderByID(ctx context.Context, id string) (model.Or
 	var dateCreated time.Time
 	var o model.Order
 	err := row.Scan(
-		&o.TrackNumber, &o.Entry, &o.Locale, &o.InternalSignature, &o.CustomerId, &o.DeliveryService, &o.Sharkey, &o.SmId, &dateCreated, &o.OofShard,
+		&o.TrackNumber, &o.Entry, &o.Locale, &o.InternalSignature, &o.CustomerId, &o.DeliveryService, &o.ShardKey, &o.SmId, &dateCreated, &o.OofShard,
 		&o.Delivery.Name, &o.Delivery.Phone, &o.Delivery.Zip, &o.Delivery.City, &o.Delivery.Address, &o.Delivery.Region, &o.Delivery.Email,
 		&o.Payment.Transaction, &o.Payment.RequestId, &o.Payment.Currency, &o.Payment.Provider, &o.Payment.Amount, &o.Payment.Paymentdt, &o.Payment.Bank, &o.Payment.DeliveryCost, &o.Payment.GoodsTotal, &o.Payment.CustomFee,
 	)

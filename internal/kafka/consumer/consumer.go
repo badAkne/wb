@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"log"
+	"wb/internal/help"
 	"wb/internal/model"
 
 	"github.com/segmentio/kafka-go"
@@ -44,6 +45,11 @@ func (c *Consumer) Start(ctx context.Context) {
 		if err := json.Unmarshal(msg.Value, &order); err != nil {
 			log.Printf("Invalid message: %v", err)
 			c.reader.CommitMessages(ctx, msg)
+			continue
+		}
+
+		if err := help.ValidateOrder(order); err != nil {
+			log.Printf("invalid_order_parametrs:%s\n", err.Error())
 			continue
 		}
 

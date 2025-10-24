@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"log"
-	"time"
 
 	"wb/internal/model"
 
@@ -21,7 +20,7 @@ func main() {
 
 	order := model.Order{
 		OrderUID:    gofakeit.UUID(),
-		TrackNumber: gofakeit.Address().Unit,
+		TrackNumber: gofakeit.UUID(),
 		Entry:       gofakeit.BeerName(),
 		Delivery: model.Delivery{
 			Name:    gofakeit.Name(),
@@ -35,6 +34,7 @@ func main() {
 		Payment: model.Payment{
 			Transaction:  gofakeit.UUID(),
 			Currency:     gofakeit.CurrencyShort(),
+			RequestId:    gofakeit.FarmAnimal(),
 			Provider:     gofakeit.BankType(),
 			Amount:       int64(gofakeit.Number(1000, 5000)),
 			Paymentdt:    gofakeit.Int64(),
@@ -46,7 +46,7 @@ func main() {
 		Items: []model.Item{
 			{
 				ChrtId:      gofakeit.Int64(),
-				TrackNumber: gofakeit.DigitN(10000),
+				TrackNumber: gofakeit.DigitN(10),
 				Price:       int64(gofakeit.Product().Price),
 				Rid:         gofakeit.DigitN(100),
 				Name:        gofakeit.ProductName(),
@@ -60,18 +60,21 @@ func main() {
 		},
 		Locale:            gofakeit.CountryAbr(),
 		InternalSignature: "",
-		CustomerId:        gofakeit.DigitN(1000000),
+		CustomerId:        gofakeit.DigitN(10),
 		DeliveryService:   gofakeit.Company(),
-		Sharkey:           gofakeit.DigitN(100),
+		ShardKey:          gofakeit.DigitN(100),
 		SmId:              int64(gofakeit.Number(1, 100)),
-		DateCreated:       time.Now(),
+		DateCreated:       "2021-11-26T06:22:19Z",
 		OofShard:          gofakeit.DigitN(10),
 	}
 
+	log.Printf(order.OrderUID)
 	data, _ := json.Marshal(order)
 	err := w.WriteMessages(context.Background(), kafka.Message{Value: data})
+
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	log.Println("Message sent")
 }
